@@ -110,9 +110,8 @@ def sample_chain(args, device, flow, n_tries, dataset_info, prop_dist=None):
 def sample(args, device, generative_model, dataset_info,
            prop_dist=None, nodesxsample=torch.tensor([10]), context=None,
            fix_noise=False):
-    max_n_nodes = dataset_info['max_n_nodes']  # this is the maximum node_size in QM9
+    max_n_nodes = int(torch.max(nodesxsample)) # pad the batch up to the size of the largest molecule in the batch
 
-    assert int(torch.max(nodesxsample)) <= max_n_nodes
     batch_size = len(nodesxsample)
 
     node_mask = torch.zeros(batch_size, max_n_nodes)
