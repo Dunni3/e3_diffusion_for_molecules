@@ -188,6 +188,22 @@ def analyze_and_save(epoch, model_sample, nodes_dist, args, device, dataset_info
         molecules['x'].append(x.detach().cpu())
         molecules['node_mask'].append(node_mask.detach().cpu())
 
+    # find max molecule size
+    mol_sizes = [ one_hot.shape[1] for one_hot in molecules['one_hot']]
+    max_mol_size = max(mol_sizes)
+
+    # pad all sampled molecules to the max molecule size
+    for i in range(int(n_samples/batch_size)):
+        for key in molecules:
+            tensor = molecules[key][i]
+            original_size = list(tensor.shape)
+            padded_size = original_size.copy()
+            padded_size[1] = max_mol_size
+            
+            padded_tensor = torch.zeros(padded_size, device=tensor.device, dtype=tensor.dtype)
+            padded_tensor[:, :original_size[1], :] = tensor
+            molecules[key][i] = padded_tensor
+
     molecules = {key: torch.cat(molecules[key], dim=0) for key in molecules}
     validity_dict, rdkit_tuple = analyze_stability_for_molecules(molecules, dataset_info)
 
